@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  VENDOR_ADMIN
+  ADMIN
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum AlertFrequency {
+  DAILY
+  WEEKLY
+}
+
+enum ProductForm {
+  LYOPHILIZED
+  PRE_MIXED
+  CAPSULE
+  NASAL
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(USER)
+
+  accounts      Account[]
+  sessions      Session[]
+  reviews       Review[]
+  savedSearches SavedSearch[]
+  priceAlerts   PriceAlert[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vendor {
+  id                String           @id @default(cuid())
+  name              String
+  slug              String           @unique
+  description       String?          @db.Text
+  website           String?
+  logoUrl           String?
+  location          String?
+  isUSBased         Boolean          @default(false)
+  overallRating     Float            @default(0)
+  reviewCount       Int              @default(0)
+  hasLabTesting     Boolean          @default(false)
+  hasAffiliateProgram Boolean        @default(false)
+  affiliateUrl      String?
+  subscriptionTier  SubscriptionTier @default(FREE)
+  isVerified        Boolean          @default(false)
+  isFeatured        Boolean          @default(false)
+
+  products Product[]
+  reviews  Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Peptide {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  category    String?
+  aliases     String[]
+  casNumber   String?
+
+  products    Product[]
+  priceAlerts PriceAlert[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id           String      @id @default(cuid())
+  vendorId     String
+  peptideId    String
+  price        Float
+  currency     String      @default("USD")
+  quantity     Float
+  unit         String      @default("mg")
+  purity       Float?
+  form         ProductForm @default(LYOPHILIZED)
+  inStock      Boolean     @default(true)
+  productUrl   String?
+  affiliateUrl String?
+
+  vendor  Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  peptide Peptide @relation(fields: [peptideId], references: [id], onDelete: Cascade)
+  reviews Review[]
+  clicks  ClickLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([peptideId])
+  @@index([price])
+}
+
+model Review {
+  id                 String  @id @default(cuid())
+  userId             String
+  vendorId           String
+  productId          String?
+  rating             Int
+  title              String
+  body               String  @db.Text
+  isVerifiedPurchase Boolean @default(false)
+  helpfulCount       Int     @default(0)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendor  Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([userId])
+}
+
+model SavedSearch {
+  id             String         @id @default(cuid())
+  userId         String
+  name           String
+  filters        Json
+  alertEnabled   Boolean        @default(false)
+  alertFrequency AlertFrequency @default(WEEKLY)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model PriceAlert {
+  id             String   @id @default(cuid())
+  userId         String
+  peptideId      String
+  targetPrice    Float
+  isActive       Boolean  @default(true)
+  lastNotifiedAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  peptide Peptide @relation(fields: [peptideId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([peptideId])
+}
+
+model ClickLog {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String?
+  vendorId  String
+  timestamp DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([vendorId])
+}
