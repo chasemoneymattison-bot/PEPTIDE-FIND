@@ -27,10 +27,16 @@ export async function GET(
       },
     });
 
-    // Redirect to affiliate URL or product URL
-    const redirectUrl = product.affiliateUrl || product.productUrl || product.vendor.website || "/search";
+    // Redirect to affiliate URL, product URL, or vendor website
+    const externalUrl = product.affiliateUrl || product.productUrl || product.vendor.website;
 
-    return NextResponse.redirect(redirectUrl);
+    // If there's a real external URL (not example.com), redirect there
+    if (externalUrl && !externalUrl.includes("example.com")) {
+      return NextResponse.redirect(externalUrl);
+    }
+
+    // Otherwise redirect to the vendor profile on PeptideFind
+    return NextResponse.redirect(new URL(`/vendor/${product.vendor.slug}`, request.url));
   } catch (error) {
     console.error("Redirect error:", error);
     return NextResponse.redirect(new URL("/search", request.url));

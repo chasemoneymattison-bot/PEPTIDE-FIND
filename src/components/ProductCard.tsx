@@ -127,7 +127,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <CardFooter className="flex-col gap-2 p-4 pt-0">
         <Button asChild className="w-full gap-2">
-          <Link href={`/api/redirect/${product.id}`} target="_blank" rel="noopener noreferrer">
+          <Link href={`/vendor/${product.vendor.slug}`}>
             View Deal
             <ExternalLink className="h-4 w-4" />
           </Link>

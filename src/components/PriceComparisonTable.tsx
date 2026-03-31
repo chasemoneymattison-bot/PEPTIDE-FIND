@@ -98,7 +98,7 @@ export function PriceComparisonTable({ products }: PriceComparisonTableProps) {
               </td>
               <td className="py-3">
                 <Button asChild size="sm" className="gap-1">
-                  <Link href={`/api/redirect/${product.id}`} target="_blank" rel="noopener noreferrer">
+                  <Link href={`/vendor/${product.vendor.slug}`}>
                     View Deal
                     <ExternalLink className="h-3 w-3" />
                   </Link>
