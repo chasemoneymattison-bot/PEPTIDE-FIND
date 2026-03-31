@@ -41,7 +41,7 @@ export function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className={`${size === "lg" ? "h-14 pl-11 pr-28 text-lg" : "h-10 pl-9 pr-20"}`}
+          className={`bg-white text-foreground ${size === "lg" ? "h-14 pl-11 pr-28 text-lg" : "h-10 pl-9 pr-20"}`}
         />
         <Button
           type="submit"

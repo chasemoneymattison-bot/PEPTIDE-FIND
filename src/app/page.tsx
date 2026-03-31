@@ -81,11 +81,16 @@ export default async function HomePage() {
           />
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <span className="text-sm text-primary-200">Popular:</span>
-            {["BPC-157", "TB-500", "Ipamorelin", "Sermorelin", "CJC-1295"].map(
-              (name) => (
+            {[
+              { name: "BPC-157", slug: "bpc-157" },
+              { name: "TB-500", slug: "tb-500" },
+              { name: "Ipamorelin", slug: "ipamorelin" },
+              { name: "Sermorelin", slug: "sermorelin" },
+              { name: "CJC-1295", slug: "cjc-1295" },
+            ].map(({ name, slug }) => (
                 <Link
-                  key={name}
-                  href={`/peptide/${name.toLowerCase()}`}
+                  key={slug}
+                  href={`/peptide/${slug}`}
                   className="rounded-full bg-white/10 px-3 py-1 text-sm text-white transition hover:bg-white/20"
                 >
                   {name}
